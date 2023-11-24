@@ -1,6 +1,7 @@
 import os
 from langchain.docstore.document import Document
 from langchain.document_loaders import PyPDFLoader
+import re
 class DocumentLoader:
 
     def get_files(self, files_path):
@@ -29,6 +30,9 @@ class DocumentLoader:
         loader = PyPDFLoader(pdf_file)
         pages = loader.load()
         full_pages.extend(pages)
+        # for page in pages:
+        #     # Remove quebras de linha da página atual e adiciona à lista full_pages
+        #     full_pages.append(page.replace('\n', ''))
             # print(f"Carregando arquivo: {pdf_file}")
         # print(len(pdf_files), len(full_pages))
 
@@ -36,6 +40,16 @@ class DocumentLoader:
 
     def filter_docs(self, docs_list, excluded_pages):
         return [doc for doc in docs_list if doc.metadata['page'] not in excluded_pages]
+
+
+    def remove_extra_newlines(self, text):
+        # Substitui três ou mais \n seguidos por apenas dois \n
+        return re.sub(r'\n{3,}', '\n\n', text)
+
+    def remove_crlf(self, text):
+        # Substitui todas as ocorrências de \r\n por uma string vazia
+        return text.replace('\r\n', '##')
+
 
     # def documents_tranforme(self, documents_list):
     #     documents = []

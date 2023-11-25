@@ -1,13 +1,13 @@
 import os
 
 import flet as ft
-from controller import document_loader, document_spliter, tik_token
+from controller import document_loader, document_spliter, tik_token, vector_store, ia_retriever
 
 def pages(page: ft.Page):
 
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.window_center()
-    page.title = "Gerenciador de arquivos IA" + " V_1.0.0"
+    page.title = "Gerenciador de arquivos IA" + " V_2.0.0"
     page.icon = "imagem_principal.png"
     progressBar = ft.ProgressBar(width=700, color=ft.colors.DEEP_ORANGE)
 
@@ -92,11 +92,22 @@ def pages(page: ft.Page):
         if user_message:
             chat.controls.append(ft.Container(ft.Text(f"Você: {user_message}", color=ft.colors.BLUE_700, selectable=True, left=True),alignment=ft.alignment.center_right, padding=10, bgcolor=ft.colors.BLUE_50, border_radius=10, margin=ft.margin.only(left=150)))
             page.update()
+
             # Integre aqui a lógica de resposta do bot
-            bot_response = "Resposta do bot"
+            vector = vector_store.VectorStore().get_faiss()
+            retriever = ia_retriever.IaRetriever(vector)
+            similarity = retriever.create_retriever_similarity(user_message)
+            txt = ""
+            for i in similarity:
+                txt = txt + i.page_content
+            bot_response = txt
             chat.controls.append(ft.Container(ft.Text(f"Bot: {bot_response}", color=ft.colors.GREEN_500,selectable=True, right=True), alignment=ft.alignment.bottom_left, padding=10,bgcolor=ft.colors.GREEN_50, border_radius=10,margin=ft.margin.only(right=150)))
             new_message.value = ""
             page.update()
+
+    def clear(e):
+        chat.controls.clear()
+        page.update()
 
     page.add(ft.Text(f"", size=20, color='blue'))
 
@@ -115,6 +126,9 @@ def pages(page: ft.Page):
 
     new_message = ft.TextField(hint_text="Digite sua pergunta aqui", autofocus=True, width=600, multiline=True)
     send_button = ft.ElevatedButton(text="Enviar", icon=ft.icons.SEND, on_click=send_click)
+    btn_clear = ft.ElevatedButton(text="Limpar", icon=ft.icons.RECYCLING, on_click=clear)
+
+
 
     t = ft.Tabs(
         selected_index=3,
@@ -141,7 +155,7 @@ def pages(page: ft.Page):
             ft.Tab(
                 text="Chat",
                 icon=ft.icons.CHAT,
-                content=ft.Container(content=ft.Column([chat,new_message, send_button], spacing=10), margin=ft.margin.all(10), alignment=ft.alignment.top_center),
+                content=ft.Container(content=ft.Column([chat,new_message, send_button,btn_clear], spacing=10), margin=ft.margin.all(10), alignment=ft.alignment.top_center),
             ),
         ],
         expand=1,

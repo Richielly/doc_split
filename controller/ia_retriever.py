@@ -31,3 +31,11 @@ class IaRetriever:
     def create_retriever_query(self, query):
         retriever = self.vectordb.similarity_search(query)
         return retriever
+
+    def get_similarity_with_relevance_scores(self, consulta, k=3):
+        retriever = self.vectordb.similarity_search_with_relevance_scores(consulta, k=k)
+        return retriever
+
+    def get_similarity_with_max_marginal_relevance(self, consulta, k=5, marginal=0.1):
+        retriever = self.vectordb.max_marginal_relevance_search(consulta, k=k, marginal=marginal)
+        return retriever

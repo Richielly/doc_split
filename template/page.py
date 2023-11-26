@@ -76,6 +76,8 @@ def pages(page: ft.Page):
         result_split = doc_split.split_by_word(document_loaded, chunk_size=int(chunk_size.value))
         chunks=0
 
+        vector_store.VectorStore().save_faiss(result_split)
+
         for split in result_split:
             num_tokens = tokens.num_tokens_from_string(split.page_content)
             chunks+=1
@@ -91,17 +93,33 @@ def pages(page: ft.Page):
         page.update()
         if user_message:
             chat.controls.append(ft.Container(ft.Text(f"Você: {user_message}", color=ft.colors.BLUE_700, selectable=True, left=True),alignment=ft.alignment.center_right, padding=10, bgcolor=ft.colors.BLUE_50, border_radius=10, margin=ft.margin.only(left=150)))
+            numero_documentos.update()
+            marginal.update()
             page.update()
 
             # Integre aqui a lógica de resposta do bot
             vector = vector_store.VectorStore().get_faiss()
             retriever = ia_retriever.IaRetriever(vector)
+            score = ""
+            rank = 0.0
+            for i in retriever.get_similarity_with_relevance_scores(user_message, k=int(numero_documentos.value)):
+                if i[1] > rank:
+                    top = str(f'🎖️️ {i[1]} \n🎯{i[0].page_content}  \n\n')
+                    rank = i[1]
+                if i[1] > 0.5:
+                    score = score + str(f'🎖️️ {i[1]} \n🎯{i[0].page_content}  \n\n')
             similarity = retriever.create_retriever_similarity(user_message)
             txt = ""
             for i in similarity:
                 txt = txt + i.page_content
+
+            marginal_similarity = retriever.get_similarity_with_max_marginal_relevance(user_message, k=int(numero_documentos.value), marginal=float(marginal.value))
+            print(marginal.value)
+            for m in marginal_similarity:
+                print(m)
+
             bot_response = txt
-            chat.controls.append(ft.Container(ft.Text(f"Bot: {bot_response}", color=ft.colors.GREEN_500,selectable=True, right=True), alignment=ft.alignment.bottom_left, padding=10,bgcolor=ft.colors.GREEN_50, border_radius=10,margin=ft.margin.only(right=150)))
+            chat.controls.append(ft.Container(ft.Text(f"Bot: {top}", selectable=True, right=True), alignment=ft.alignment.bottom_left, padding=10,bgcolor=ft.colors.GREEN_50, border_radius=10,margin=ft.margin.only(right=150)))
             new_message.value = ""
             page.update()
 
@@ -128,7 +146,8 @@ def pages(page: ft.Page):
     send_button = ft.ElevatedButton(text="Enviar", icon=ft.icons.SEND, on_click=send_click)
     btn_clear = ft.ElevatedButton(text="Limpar", icon=ft.icons.RECYCLING, on_click=clear)
 
-
+    numero_documentos = ft.TextField(label='N° Doc', value=3, width=150)
+    marginal = ft.TextField(label='Marginal Relevance',value=0.5, width=150)
 
     t = ft.Tabs(
         selected_index=3,
@@ -155,7 +174,7 @@ def pages(page: ft.Page):
             ft.Tab(
                 text="Chat",
                 icon=ft.icons.CHAT,
-                content=ft.Container(content=ft.Column([chat,new_message, send_button,btn_clear], spacing=10), margin=ft.margin.all(10), alignment=ft.alignment.top_center),
+                content=ft.Container(content=ft.Column([chat,new_message, send_button,btn_clear, marginal, numero_documentos], spacing=10), margin=ft.margin.all(10), alignment=ft.alignment.top_center),
             ),
         ],
         expand=1,

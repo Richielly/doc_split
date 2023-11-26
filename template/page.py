@@ -52,7 +52,12 @@ def pages(page: ft.Page):
         total_tokens=0
         paginas = 0
 
-        for pag in doc.load_pdf(selected_files.value):
+        if pagina.value:
+            documentos = doc.filter_docs(doc.load_pdf(selected_files.value), pagina.value.split(','))
+        else:
+            documentos = doc.load_pdf(selected_files.value)
+
+        for pag in documentos:
             paginas+=1
             num_tokens = tokens.num_tokens_from_string(pag.page_content)
             total_tokens+=num_tokens
@@ -71,9 +76,15 @@ def pages(page: ft.Page):
         tokens = tik_token.TikToken()
         text = ""
         doc = document_loader.DocumentLoader()
-        document_loaded = doc.load_pdf(selected_files.value)
+        chunk_overlap.update()
+
+        if pagina.value:
+            document_loaded = doc.filter_docs(doc.load_pdf(selected_files.value), pagina.value.split(','))
+        else:
+            document_loaded = doc.load_pdf(selected_files.value)
+
         doc_split = document_spliter.DocumentSpliter()
-        result_split = doc_split.split_by_word(document_loaded, chunk_size=int(chunk_size.value))
+        result_split = doc_split.split_by_word(document_loaded, chunk_size=int(chunk_size.value),chunk_overlap=int(chunk_overlap.value))
         chunks=0
 
         vector_store.VectorStore().save_faiss(result_split)
@@ -129,7 +140,6 @@ def pages(page: ft.Page):
 
     page.add(ft.Text(f"", size=20, color='blue'))
 
-
     container_1 = ft.Container(content=ft.Text(""), alignment=ft.alignment.center, bgcolor=ft.colors.GREY_200,scale=1)
     btn_processar = ft.ElevatedButton("Processar...", on_click=btn_processar, icon=ft.icons.CHECK, visible=False, width=200)
     btn_gerar_split = ft.ElevatedButton("Iniciar Split", on_click=btn_chunk, icon=ft.icons.ADD_BOX)
@@ -140,14 +150,19 @@ def pages(page: ft.Page):
     chunks_total = ft.Text('', size=20)
     header = ft.Text("", size=20, color='blue')
 
-    chat = ft.Column(scroll="always", expand=True, width=600, height=600, )
+    chat = ft.Column(scroll="always", expand=True, height=600)
 
-    new_message = ft.TextField(hint_text="Digite sua pergunta aqui", autofocus=True, width=600, multiline=True)
+
+    new_message = ft.TextField(hint_text="Digite sua pergunta aqui", autofocus=True, multiline=True)
     send_button = ft.ElevatedButton(text="Enviar", icon=ft.icons.SEND, on_click=send_click)
     btn_clear = ft.ElevatedButton(text="Limpar", icon=ft.icons.RECYCLING, on_click=clear)
-
     numero_documentos = ft.TextField(label='N° Doc', value=3, width=150)
     marginal = ft.TextField(label='Marginal Relevance',value=0.5, width=150)
+
+    box_send_clear = ft.Row([send_button, btn_clear, marginal, numero_documentos])
+
+    pagina = ft.TextField(label='Excluir páginas', width=150)
+    chunk_overlap = ft.TextField(label='Overlap', value=25, width=150)
 
     t = ft.Tabs(
         selected_index=3,
@@ -157,7 +172,7 @@ def pages(page: ft.Page):
                 text="Importar",
                 icon=ft.icons.IMPORT_EXPORT,
                 content=ft.Container(
-                    content=ft.Column([btn_procurar_arquivo,btn_processar]), alignment=ft.alignment.center, padding=15
+                    content=ft.Column([btn_procurar_arquivo,pagina, btn_processar]), alignment=ft.alignment.center, padding=15
                 ),
             ),
             ft.Tab(
@@ -168,13 +183,13 @@ def pages(page: ft.Page):
             ft.Tab(
                 text="Chunks",
                 icon=ft.icons.INSERT_PAGE_BREAK,
-                content=ft.Container(content=ft.Column([header,btn_gerar_split, chunk_size, chunks_total, container_2],scroll=True), alignment=ft.alignment.top_center, padding=20,
+                content=ft.Container(content=ft.Column([header,chunk_overlap, btn_gerar_split, chunk_size, chunks_total, container_2],scroll=True), alignment=ft.alignment.top_center, padding=20,
                 ),
             ),
             ft.Tab(
                 text="Chat",
                 icon=ft.icons.CHAT,
-                content=ft.Container(content=ft.Column([chat,new_message, send_button,btn_clear, marginal, numero_documentos], spacing=10), margin=ft.margin.all(10), alignment=ft.alignment.top_center),
+                content=ft.Container(content=ft.Column([chat,new_message, box_send_clear], spacing=10), margin=ft.margin.all(20), alignment=ft.alignment.top_center),
             ),
         ],
         expand=1,

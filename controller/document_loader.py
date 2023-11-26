@@ -39,8 +39,8 @@ class DocumentLoader:
         return full_pages
 
     def filter_docs(self, docs_list, excluded_pages):
+        excluded_pages = [int(x) - 1 for x in excluded_pages]
         return [doc for doc in docs_list if doc.metadata['page'] not in excluded_pages]
-
 
     def remove_extra_newlines(self, text):
         # Substitui três ou mais \n seguidos por apenas dois \n

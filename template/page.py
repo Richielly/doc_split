@@ -1,7 +1,12 @@
 import os
+import time
 
 import flet as ft
-from controller import document_loader, document_spliter, tik_token, vector_store, ia_retriever
+from controller import document_loader
+from controller import document_spliter
+from controller import tik_token
+from controller import vector_store
+from controller import ia_retriever
 
 def pages(page: ft.Page):
 
@@ -9,7 +14,8 @@ def pages(page: ft.Page):
     page.window_center()
     page.title = "Gerenciador de arquivos IA" + " V_2.0.0"
     page.icon = "imagem_principal.png"
-    progressBar = ft.ProgressBar(width=700, color=ft.colors.DEEP_ORANGE)
+    progressBar = ft.ProgressBar(width=1000, color=ft.colors.DEEP_ORANGE, value=0)
+    progressBar_chunk = ft.ProgressBar(width=1000, color=ft.colors.BROWN_500, visible=False)
 
     def pick_files_result(e: ft.FilePickerResultEvent):
 
@@ -58,7 +64,11 @@ def pages(page: ft.Page):
             documentos = doc.load_pdf(selected_files.value)
 
         for pag in documentos:
+            time.sleep(0.2)
             paginas+=1
+            progressBar.value = 100/len(documentos)/100 * paginas
+            progressBar.update()
+            page.update()
             num_tokens = tokens.num_tokens_from_string(pag.page_content)
             total_tokens+=num_tokens
             rest = doc.remove_crlf(pag.page_content)
@@ -69,10 +79,19 @@ def pages(page: ft.Page):
         paginas_total.value = f'📃 {paginas}'
         container_1.content=ft.Text(text, selectable=True)
         page.window_maximized = False
+        btn_gerar_split.visible = True
+        btn_gerar_split.disabled = False
         t.selected_index=1
+        progressBar.value = 0
         page.update()
 
     def btn_chunk(e):
+        btn_gerar_split.disabled = True
+        t.selected_index = 2
+        progressBar_chunk.value = None
+        progressBar_chunk.visible = True
+        page.update()
+        progressBar_chunk.update()
         tokens = tik_token.TikToken()
         text = ""
         doc = document_loader.DocumentLoader()
@@ -90,13 +109,17 @@ def pages(page: ft.Page):
         vector_store.VectorStore().save_faiss(result_split)
 
         for split in result_split:
+            time.sleep(0.2)
             num_tokens = tokens.num_tokens_from_string(split.page_content)
             chunks+=1
             text = text + '\n' + '-' * 90 + f' → chunk {chunks}' + '-' * 90 + f'\n 🪙 {num_tokens} \n' + split.page_content
+            progressBar_chunk.value = 100 / len(result_split) / 100 * chunks
+            progressBar_chunk.update()
+            page.update()
         chunks_total.value = ' 🧩 '+str(chunks) + ' chunks.'
         container_2.content = ft.Text(text, selectable=True)
         page.window_maximized = False
-        t.selected_index = 2
+        btn_gerar_split.disabled = False
         page.update()
 
     def send_click(e):
@@ -164,6 +187,7 @@ def pages(page: ft.Page):
     pagina = ft.TextField(label='Excluir páginas', width=150)
     chunk_overlap = ft.TextField(label='Overlap', value=25, width=150)
 
+
     t = ft.Tabs(
         selected_index=3,
         animation_duration=300,
@@ -172,18 +196,18 @@ def pages(page: ft.Page):
                 text="Importar",
                 icon=ft.icons.IMPORT_EXPORT,
                 content=ft.Container(
-                    content=ft.Column([btn_procurar_arquivo,pagina, btn_processar]), alignment=ft.alignment.center, padding=15
+                    content=ft.Column([btn_procurar_arquivo,pagina,progressBar, btn_processar]), alignment=ft.alignment.center, padding=15
                 ),
             ),
             ft.Tab(
                 text="Visualizar",
                 icon=ft.icons.VIEW_COZY,
-                content=ft.Container(content=ft.Column([header,tokens_total,paginas_total,btn_gerar_split, container_1],scroll=True), alignment=ft.alignment.top_center, padding=15),
+                content=ft.Container(content=ft.Column([header,tokens_total,paginas_total,btn_gerar_split,progressBar_chunk, container_1],scroll=True), alignment=ft.alignment.top_center, padding=15),
             ),
             ft.Tab(
                 text="Chunks",
                 icon=ft.icons.INSERT_PAGE_BREAK,
-                content=ft.Container(content=ft.Column([header,chunk_overlap, btn_gerar_split, chunk_size, chunks_total, container_2],scroll=True), alignment=ft.alignment.top_center, padding=20,
+                content=ft.Container(content=ft.Column([header,chunk_overlap, btn_gerar_split, chunk_size, chunks_total,progressBar_chunk, container_2],scroll=True), alignment=ft.alignment.top_center, padding=20,
                 ),
             ),
             ft.Tab(
@@ -200,7 +224,7 @@ def pages(page: ft.Page):
 
 if __name__ == "__main__":
     ft.app(target=pages)
-    # ft.app(port=3636, target=pages, view=ft.WEB_BROWSER)
+    # ft.app(port=7000, target=pages, view=ft.WEB_BROWSER)
 
-#  pyinstaller --name export_conversor_frotas_sysmar --onefile --icon=transferencia-de-dados.ico --noconsole main.py
-# flet pack --name doc_split_V_1.0.0 --icon=????.ico main.py
+#  pyinstaller --name doc_valid --onefile --icon=.ico --noconsole page.py
+# flet pack --name doc_split_V_1.0.0 --icon=icone_principal.ico page.py

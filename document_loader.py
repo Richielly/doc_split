@@ -1,5 +1,5 @@
 import os
-from langchain.docstore.document import Document
+# from langchain.docstore.document import Document
 from langchain.document_loaders import PyPDFLoader
 import re
 class DocumentLoader:

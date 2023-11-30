@@ -13,12 +13,12 @@ import os
 def pages(page: ft.Page):
 
 
-    if getattr(sys, 'frozen', False):
-        basedir = sys._MEIPASS
-    else:
-        basedir = os.path.abspath(".")
-
-    path_to_file = os.path.join(basedir, 'langchain', 'chains', 'llm_summarization_checker', 'prompts','create_facts.txt')
+    # if getattr(sys, 'frozen', False):
+    #     basedir = sys._MEIPASS
+    # else:
+    #     basedir = os.path.abspath(".")
+    #
+    # path_to_file = os.path.join(basedir, 'langchain', 'chains', 'llm_summarization_checker', 'prompts','create_facts.txt')
 
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.window_center()
@@ -74,7 +74,7 @@ def pages(page: ft.Page):
             documentos = doc.load_pdf(selected_files.value)
 
         for pag in documentos:
-            time.sleep(0.2)
+            time.sleep(0.1)
             paginas+=1
             progressBar.value = 100/len(documentos)/100 * paginas
             progressBar.update()
@@ -115,11 +115,15 @@ def pages(page: ft.Page):
         doc_split = document_spliter.DocumentSpliter()
         result_split = doc_split.split_by_word(document_loaded, chunk_size=int(chunk_size.value),chunk_overlap=int(chunk_overlap.value))
         chunks=0
-
-        vector_store.VectorStore().save_faiss(result_split)
-
+        vector_store.VectorStore().save_faiss(result_split, str(result_split[0].metadata['source']).split('\\')[-1].split('.')[0])
+        drop_down_conhecimento.options.clear()
+        drop_down_conhecimento.update()
+        for i in vector_store.VectorStore().get_list_faiss():
+            drop_down_conhecimento.options.append(ft.dropdown.Option(i))
+        drop_down_conhecimento.update()
+        page.update()
         for split in result_split:
-            time.sleep(0.2)
+            time.sleep(0.1)
             num_tokens = tokens.num_tokens_from_string(split.page_content)
             chunks+=1
             text = text + '\n' + '-' * 90 + f' → chunk {chunks}' + '-' * 90 + f'\n 🪙 {num_tokens} \n' + split.page_content
@@ -130,6 +134,7 @@ def pages(page: ft.Page):
         container_2.content = ft.Text(text, selectable=True)
         page.window_maximized = False
         btn_gerar_split.disabled = False
+        t.selected_index = 3
         page.update()
 
     def send_click(e):
@@ -140,29 +145,24 @@ def pages(page: ft.Page):
             numero_documentos.update()
             marginal.update()
             page.update()
-
             # Integre aqui a lógica de resposta do bot
-            vector = vector_store.VectorStore().get_faiss()
+            vector = vector_store.VectorStore().get_faiss(drop_down_conhecimento.value)
             retriever = ia_retriever.IaRetriever(vector)
             score = ""
             rank = 0.0
+            top = "Não foi encontrado relevância mínima na base de conhecimento carregada, tente melhorar a pergunta."
             for i in retriever.get_similarity_with_relevance_scores(user_message, k=int(numero_documentos.value)):
                 if i[1] > rank:
                     top = str(f'🎖️️ {i[1]} \n🎯{i[0].page_content}  \n\n')
                     rank = i[1]
                 if i[1] > 0.5:
                     score = score + str(f'🎖️️ {i[1]} \n🎯{i[0].page_content}  \n\n')
+
+            #############################################################################
             similarity = retriever.create_retriever_similarity(user_message)
-            txt = ""
-            for i in similarity:
-                txt = txt + i.page_content
-
             marginal_similarity = retriever.get_similarity_with_max_marginal_relevance(user_message, k=int(numero_documentos.value), marginal=float(marginal.value))
-            print(marginal.value)
-            for m in marginal_similarity:
-                print(m)
+            #############################################################################
 
-            bot_response = txt
             chat.controls.append(ft.Container(ft.Text(f"Bot: {top}", selectable=True, right=True), alignment=ft.alignment.bottom_left, padding=10,bgcolor=ft.colors.GREEN_50, border_radius=10,margin=ft.margin.only(right=150)))
             new_message.value = ""
             page.update()
@@ -197,9 +197,10 @@ def pages(page: ft.Page):
     pagina = ft.TextField(label='Excluir páginas', width=150)
     chunk_overlap = ft.TextField(label='Overlap', value=25, width=150)
 
+    drop_down_conhecimento = ft.Dropdown(width=400, label="Conhecimento")
 
     t = ft.Tabs(
-        selected_index=3,
+        selected_index=0,
         animation_duration=300,
         tabs=[
             ft.Tab(
@@ -223,7 +224,7 @@ def pages(page: ft.Page):
             ft.Tab(
                 text="Chat",
                 icon=ft.icons.CHAT,
-                content=ft.Container(content=ft.Column([chat,new_message, box_send_clear], spacing=10), margin=ft.margin.all(20), alignment=ft.alignment.top_center),
+                content=ft.Container(content=ft.Column([drop_down_conhecimento, chat,new_message, box_send_clear], spacing=10), margin=ft.margin.all(20), alignment=ft.alignment.top_center),
             ),
         ],
         expand=1,
@@ -231,18 +232,19 @@ def pages(page: ft.Page):
     t.label_color='red'
     page.add(t)
 
+    for i in vector_store.VectorStore().get_list_faiss():
+        drop_down_conhecimento.options.append(ft.dropdown.Option(i))
+    drop_down_conhecimento.update()
+    page.update()
+
 if __name__ == "__main__":
     ft.app(target=pages)
     # ft.app(port=7000, target=pages, view=ft.WEB_BROWSER)
 
-#  pyinstaller --name doc_valid --onefile --icon=.ico --noconsole page.py
-# flet pack --name doc_split_V_1.0.0 --icon=icone_principal.ico page.py
+# flet pack --name doc_split_V_1.0.0 --icon=icone_principal.ico --add-data="C:/Users/Equiplano/PycharmProjects/doc_split/venvdoc_split/Lib/site-packages/langchain;./langchain" --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=tqdm --hidden-import=sentence_transformers --hidden-import=transformers page.py
 
-# pyinstaller --add-data "C:\Users\Equiplano\PycharmProjects\doc_split\venvdoc_split\Lib\site-packages\langchain\chains\llm_summarization_checker\prompts\create_facts.txt;." --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --console ./template/page.py
 
-# pyinstaller --add-data "C:\Users\Equiplano\PycharmProjects\doc_split\venvdoc_split\Lib\site-packages\langchain\chains\llm_summarization_checker\prompts\create_facts.txt;." --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=tqdm --hidden-import=sentence_transformers --console ./template/page.py
 
-# pyinstaller --add-data "C:\Users\Equiplano\PycharmProjects\doc_split\venvdoc_split\Lib\site-packages\langchain\chains\llm_summarization_checker\prompts\create_facts.txt;." --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=tqdm --hidden-import=sentence_transformers --hidden-import=transformers  --console ./template/page.py
+#Gerar teste Debug pyinstaller --name doc_split_V_1.0.0 --icon=icone_principal.ico --copy-metadata=tqdm --copy-metadata=regex --copy-metadata=requests --copy-metadata=packaging --copy-metadata=filelock  --copy-metadata=numpy --copy-metadata=huggingface-hub --copy-metadata=safetensors --copy-metadata=pyyaml --copy-metadata=torch --copy-metadata=tokenizers --add-data="C:/Users/Equiplano/PycharmProjects/doc_split/venvdoc_split/Lib/site-packages/langchain;./langchain" --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=tqdm --hidden-import=sentence_transformers --hidden-import=transformers --console --debug=all --noconfirm page.py
 
-# pyinstaller --add-data "C:\Users\Equiplano\PycharmProjects\doc_split\venvdoc_split\Lib\site-packages\langchain\chains\llm_summarization_checker\prompts\create_fact
-# s.txt;." --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=tqdm --hidden-import=sentence-transformers --hidden-import=transformers --hidden-import=langchain --hidden-import=huggingface-hub --console ./template/page.py
+#Gerar versão --> pyinstaller --name doc_split_V_1.0.0 --icon=icone_principal.ico --copy-metadata=tqdm --copy-metadata=regex --copy-metadata=requests --copy-metadata=packaging --copy-metadata=filelock  --copy-metadata=numpy --copy-metadata=huggingface-hub --copy-metadata=safetensors --copy-metadata=pyyaml --copy-metadata=torch --copy-metadata=tokenizers --add-data="C:/Users/Equiplano/PycharmProjects/doc_split/venvdoc_split/Lib/site-packages/langchain;./langchain" --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=tqdm --hidden-import=sentence_transformers --hidden-import=transformers --noconfirm --onefile page.py

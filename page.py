@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import time
 
@@ -22,7 +23,7 @@ def pages(page: ft.Page):
 
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.window_center()
-    page.title = "Gerenciador de arquivos IA" + " V_2.0.0"
+    page.title = "Gerenciador de arquivos IA" + " V_2.0.5"
     page.icon = "imagem_principal.png"
     progressBar = ft.ProgressBar(width=1000, color=ft.colors.DEEP_ORANGE, value=0)
     progressBar_chunk = ft.ProgressBar(width=1000, color=ft.colors.BROWN_500, visible=False)
@@ -60,6 +61,7 @@ def pages(page: ft.Page):
 
     def btn_processar(e):
         btn_processar.disabled=True
+        progressBar.value = None
         page.update()
         text = ""
         doc_inf = True
@@ -81,9 +83,11 @@ def pages(page: ft.Page):
             page.update()
             num_tokens = tokens.num_tokens_from_string(pag.page_content)
             total_tokens+=num_tokens
-            rest = doc.remove_crlf(pag.page_content)
+            # rest = doc.remove_crlf(pag.page_content)
+            rest = doc.preprocessar_texto(pag.page_content)
+
             if doc_inf:
-                text = text+'\n'+'-'*90 + ' → pagina ' +str(pag.metadata['page']+1) +'-'*90 +f'\n🪙 tokens:  {num_tokens}\n'+rest
+                text = text+'\n'+'-'*90 + ' → pagina ' +str(pag.metadata['page']+1) +'-'*90 +f'\n🪙 tokens:  {num_tokens}\n'+rest.lower()
 
         tokens_total.value = f'💰 {total_tokens} tokens total.\n 💵 '+ str((total_tokens / 1000) * 0.001) + ' custo.'
         paginas_total.value = f'📃 {paginas}'
@@ -115,7 +119,7 @@ def pages(page: ft.Page):
         doc_split = document_spliter.DocumentSpliter()
         result_split = doc_split.split_by_word(document_loaded, chunk_size=int(chunk_size.value),chunk_overlap=int(chunk_overlap.value))
         chunks=0
-        vector_store.VectorStore().save_faiss(result_split, str(result_split[0].metadata['source']).split('\\')[-1].split('.')[0])
+        vector_store.VectorStore().save_faiss(result_split, str(result_split[0].metadata['source']).split('\\')[-1].split('.')[0].lower())
         drop_down_conhecimento.options.clear()
         drop_down_conhecimento.update()
         for i in vector_store.VectorStore().get_list_faiss():
@@ -222,7 +226,7 @@ def pages(page: ft.Page):
                 ),
             ),
             ft.Tab(
-                text="Chat",
+                text="Rank",
                 icon=ft.icons.CHAT,
                 content=ft.Container(content=ft.Column([drop_down_conhecimento, chat,new_message, box_send_clear], spacing=10), margin=ft.margin.all(20), alignment=ft.alignment.top_center),
             ),
@@ -230,7 +234,8 @@ def pages(page: ft.Page):
         expand=1,
     )
     t.label_color='red'
-    page.add(t)
+    if datetime.now().year == 2023:
+        page.add(t)
 
     for i in vector_store.VectorStore().get_list_faiss():
         drop_down_conhecimento.options.append(ft.dropdown.Option(i))

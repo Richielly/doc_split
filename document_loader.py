@@ -50,6 +50,27 @@ class DocumentLoader:
         # Substitui todas as ocorrências de \r\n por uma string vazia
         return text.replace('\r\n', '##')
 
+    def preprocessar_texto(self, texto):
+        # Removendo caracteres especiais e múltiplos espaços
+        texto = re.sub(r'\s{3,}', '\n', texto)
+        return texto
+
+    def remover_repeticoes_globais(self, textos, trecho):
+        """
+        Remove as repetições de um trecho em uma lista de textos, mantendo apenas a primeira ocorrência global.
+        """
+        texto_completo = ''.join(textos)  # Concatena todos os textos em um único texto
+        primeira_ocorrencia = True
+
+        def substituir_trecho(match):
+            nonlocal primeira_ocorrencia
+            if primeira_ocorrencia:
+                primeira_ocorrencia = False
+                return match.group(0)  # Mantém a primeira ocorrência
+            return ''  # Remove as repetições subsequentes
+
+        texto_atualizado = re.sub(re.escape(trecho), substituir_trecho, texto_completo)
+        return texto_atualizado
 
     # def documents_tranforme(self, documents_list):
     #     documents = []

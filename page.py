@@ -23,7 +23,7 @@ def pages(page: ft.Page):
 
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.window_center()
-    page.title = "Gerenciador de arquivos IA" + " V_2.0.5"
+    page.title = "Gerenciador de arquivos IA" + " V_2.0.6"
     page.icon = "imagem_principal.png"
     progressBar = ft.ProgressBar(width=1000, color=ft.colors.DEEP_ORANGE, value=0)
     progressBar_chunk = ft.ProgressBar(width=1000, color=ft.colors.BROWN_500, visible=False)
@@ -148,12 +148,13 @@ def pages(page: ft.Page):
             chat.controls.append(ft.Container(ft.Text(f"Você: {user_message}", color=ft.colors.BLUE_700, selectable=True, left=True),alignment=ft.alignment.center_right, padding=10, bgcolor=ft.colors.BLUE_50, border_radius=10, margin=ft.margin.only(left=150)))
             numero_documentos.update()
             marginal.update()
+            rank_min.update()
             page.update()
             # Integre aqui a lógica de resposta do bot
             vector = vector_store.VectorStore().get_faiss(drop_down_conhecimento.value)
             retriever = ia_retriever.IaRetriever(vector)
             score = ""
-            rank = 0.0
+            rank = float(rank_min.value)
             top = "Não foi encontrado relevância mínima na base de conhecimento carregada, tente melhorar a pergunta."
             for i in retriever.get_similarity_with_relevance_scores(user_message, k=int(numero_documentos.value)):
                 if i[1] > rank:
@@ -190,13 +191,14 @@ def pages(page: ft.Page):
     chat = ft.Column(scroll="always", expand=True, height=600)
 
 
-    new_message = ft.TextField(hint_text="Digite sua pergunta aqui", autofocus=True, multiline=True)
+    new_message = ft.TextField(hint_text="Digite sua pergunta aqui", autofocus=True, multiline=True, autocorrect=True)
     send_button = ft.ElevatedButton(text="Enviar", icon=ft.icons.SEND, on_click=send_click)
     btn_clear = ft.ElevatedButton(text="Limpar", icon=ft.icons.RECYCLING, on_click=clear)
     numero_documentos = ft.TextField(label='N° Doc', value=3, width=150)
+    rank_min = ft.TextField(label='Rank Min', value=0.0, width=150)
     marginal = ft.TextField(label='Marginal Relevance',value=0.5, width=150)
 
-    box_send_clear = ft.Row([send_button, btn_clear, marginal, numero_documentos])
+    box_send_clear = ft.Row([send_button, btn_clear, marginal, numero_documentos, rank_min])
 
     pagina = ft.TextField(label='Excluir páginas', width=150)
     chunk_overlap = ft.TextField(label='Overlap', value=25, width=150)
@@ -252,4 +254,4 @@ if __name__ == "__main__":
 
 #Gerar teste Debug pyinstaller --name doc_split_V_1.0.0 --icon=icone_principal.ico --copy-metadata=tqdm --copy-metadata=regex --copy-metadata=requests --copy-metadata=packaging --copy-metadata=filelock  --copy-metadata=numpy --copy-metadata=huggingface-hub --copy-metadata=safetensors --copy-metadata=pyyaml --copy-metadata=torch --copy-metadata=tokenizers --add-data="C:/Users/Equiplano/PycharmProjects/doc_split/venvdoc_split/Lib/site-packages/langchain;./langchain" --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=tqdm --hidden-import=sentence_transformers --hidden-import=transformers --console --debug=all --noconfirm page.py
 
-#Gerar versão --> pyinstaller --name doc_split_V_1.0.0 --icon=icone_principal.ico --copy-metadata=tqdm --copy-metadata=regex --copy-metadata=requests --copy-metadata=packaging --copy-metadata=filelock  --copy-metadata=numpy --copy-metadata=huggingface-hub --copy-metadata=safetensors --copy-metadata=pyyaml --copy-metadata=torch --copy-metadata=tokenizers --add-data="C:/Users/Equiplano/PycharmProjects/doc_split/venvdoc_split/Lib/site-packages/langchain;./langchain" --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=tqdm --hidden-import=sentence_transformers --hidden-import=transformers --noconfirm --onefile page.py
+#Gerar versão --> pyinstaller --name Analise_manual_V_2.0.6 --icon=icone_principal.ico --copy-metadata=tqdm --copy-metadata=regex --copy-metadata=requests --copy-metadata=packaging --copy-metadata=filelock  --copy-metadata=numpy --copy-metadata=huggingface-hub --copy-metadata=safetensors --copy-metadata=pyyaml --copy-metadata=torch --copy-metadata=tokenizers --add-data="C:/Users/Equiplano/PycharmProjects/doc_split/venvdoc_split/Lib/site-packages/langchain;./langchain" --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=tqdm --hidden-import=sentence_transformers --hidden-import=transformers --noconfirm --onefile --noconsole page.py

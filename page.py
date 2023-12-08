@@ -10,6 +10,7 @@ import vector_store
 import ia_retriever
 import sys
 import os
+import agi_connect
 
 def pages(page: ft.Page):
 
@@ -23,7 +24,7 @@ def pages(page: ft.Page):
 
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.window_center()
-    page.title = "Gerenciador de arquivos IA" + " V_2.0.6"
+    page.title = "Gerenciador de arquivos IA" + " V_2.0.7"
     page.icon = "imagem_principal.png"
     progressBar = ft.ProgressBar(width=1000, color=ft.colors.DEEP_ORANGE, value=0)
     progressBar_chunk = ft.ProgressBar(width=1000, color=ft.colors.BROWN_500, visible=False)
@@ -156,21 +157,39 @@ def pages(page: ft.Page):
             score = ""
             rank = float(rank_min.value)
             top = "Não foi encontrado relevância mínima na base de conhecimento carregada, tente melhorar a pergunta."
-            for i in retriever.get_similarity_with_relevance_scores(user_message, k=int(numero_documentos.value)):
+            classificacao = retriever.get_similarity_with_relevance_scores(user_message, k=int(numero_documentos.value))
+            for i in classificacao:
                 if i[1] > rank:
-                    top = str(f'🎖️️ {i[1]} \n🎯{i[0].page_content}  \n\n')
+                    top = str(f'🎖️:️ {i[1]} \n🎯: {i[0].page_content}  \n\n')
                     rank = i[1]
                 if i[1] > 0.5:
-                    score = score + str(f'🎖️️ {i[1]} \n🎯{i[0].page_content}  \n\n')
+                    score = score + str(f'🎖️️: {i[1]} \n🎯: {i[0].page_content}  \n\n')
 
             #############################################################################
             similarity = retriever.create_retriever_similarity(user_message)
             marginal_similarity = retriever.get_similarity_with_max_marginal_relevance(user_message, k=int(numero_documentos.value), marginal=float(marginal.value))
             #############################################################################
 
-            chat.controls.append(ft.Container(ft.Text(f"Bot: {top}", selectable=True, right=True), alignment=ft.alignment.bottom_left, padding=10,bgcolor=ft.colors.GREEN_50, border_radius=10,margin=ft.margin.only(right=150)))
-            new_message.value = ""
+            if not check_box_inteligencia.value:
+                chat.controls.append(ft.Container(ft.Text(f"Bot: {top}", selectable=True, right=True), alignment=ft.alignment.bottom_left, padding=10,bgcolor=ft.colors.GREEN_50, border_radius=10,margin=ft.margin.only(right=150)))
+                new_message.value = ""
+            else:
+                texto = ""
+                for i in classificacao:
+                    texto = texto + i[0].page_content
+                agi = agi_connect.AgiConnect()
+                resposta = agi.talk(texto=texto, pergunta=user_message)
+                chat.controls.append(ft.Container(ft.Text(f"Inteligencia: {resposta}", selectable=True, right=True),
+                                                  alignment=ft.alignment.bottom_left, padding=10,
+                                                  bgcolor=ft.colors.RED_50, border_radius=10,
+                                                  margin=ft.margin.only(right=150)))
+                new_message.value = ""
+
             page.update()
+
+    def checkbox_changed(e):
+        # talk = agi_connect.AgiConnect()
+        return check_box_inteligencia.value
 
     def clear(e):
         chat.controls.clear()
@@ -205,6 +224,8 @@ def pages(page: ft.Page):
 
     drop_down_conhecimento = ft.Dropdown(width=400, label="Conhecimento")
 
+    check_box_inteligencia = ft.Checkbox(label="Usar Inteligência", on_change=checkbox_changed)
+
     t = ft.Tabs(
         selected_index=0,
         animation_duration=300,
@@ -230,7 +251,7 @@ def pages(page: ft.Page):
             ft.Tab(
                 text="Rank",
                 icon=ft.icons.CHAT,
-                content=ft.Container(content=ft.Column([drop_down_conhecimento, chat,new_message, box_send_clear], spacing=10), margin=ft.margin.all(20), alignment=ft.alignment.top_center),
+                content=ft.Container(content=ft.Column([drop_down_conhecimento, chat,new_message, box_send_clear, check_box_inteligencia], spacing=10), margin=ft.margin.all(20), alignment=ft.alignment.top_center),
             ),
         ],
         expand=1,

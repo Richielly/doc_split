@@ -33,17 +33,17 @@ class AgiConnect:
         #     print(chunk.text)
         #     print("_" * 80)
 
-        # model = genai.GenerativeModel('gemini-pro-vision')
-        # img = PIL.Image.open('imagem_principal.png')
-        # response = model.generate_content(["quais os dados mais importantes desta imagem?", img])
-        # response.resolve()
-        # print(response.text)
-
-        model = genai.GenerativeModel('gemini-pro')
-        chat = model.start_chat(history=[])
-
-        response = chat.send_message("Qual a melhor inteligencias.")
+        model = genai.GenerativeModel('gemini-pro-vision')
+        img = PIL.Image.open('placa-do-onix.png')
+        response = model.generate_content(["qual a placa deste veiculo?, responda com calma, analise bem principalmente as letras, caso tenha duvida revise quantas vesez for necessário para responder corretamente.", img])
+        response.resolve()
         print(response.text)
+
+        # model = genai.GenerativeModel('gemini-pro')
+        # chat = model.start_chat(history=[])
+        #
+        # response = chat.send_message("Qual a melhor inteligencias.")
+        # print(response.text)
 
         # print(chat.history)
 

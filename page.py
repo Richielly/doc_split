@@ -17,7 +17,7 @@ def pages(page: ft.Page):
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.window_center()
 <<<<<<< HEAD
-    page.title = "Gerenciador de arquivos IA" + " V_3.1.5"
+    page.title = "Gerenciador de arquivos IA" + " V_3.1.6"
 =======
     page.title = "Gerenciador de arquivos IA" + " V_3.1.1"
 >>>>>>> a9fed14 (V_3.1.2)

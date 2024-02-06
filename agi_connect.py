@@ -22,6 +22,7 @@ class AgiConnect:
         return response[0]
 
     def image_talk(self):
+        pass
 
         # for m in genai.list_models():
         #     if 'generateContent' in m.supported_generation_methods:
@@ -33,11 +34,11 @@ class AgiConnect:
         #     print(chunk.text)
         #     print("_" * 80)
 
-        model = genai.GenerativeModel('gemini-pro-vision')
-        img = PIL.Image.open('placa-do-onix.png')
-        response = model.generate_content(["qual a placa deste veiculo?, responda com calma, analise bem principalmente as letras, caso tenha duvida revise quantas vesez for necessário para responder corretamente.", img])
-        response.resolve()
-        print(response.text)
+        # model = genai.GenerativeModel('gemini-pro-vision')
+        # img = PIL.Image.open('placa-do-onix.png')
+        # response = model.generate_content(["qual a placa deste veiculo?, responda com calma, analise bem principalmente as letras, caso tenha duvida revise quantas vesez for necessário para responder corretamente.", img])
+        # response.resolve()
+        # print(response.text)
 
         # model = genai.GenerativeModel('gemini-pro')
         # chat = model.start_chat(history=[])
@@ -63,8 +64,8 @@ class AgiConnect:
 
 
 
-t = AgiConnect()
-t.image_talk()
+# t = AgiConnect()
+# t.image_talk()
 #
 # texto = """ Módulo Contábil > Configurações Gerais > Parâmetros Contas de Resultado
 #     Permite relacionar as Contas de Resultado do Exercício por Entidade.

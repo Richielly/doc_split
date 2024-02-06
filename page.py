@@ -16,11 +16,7 @@ def pages(page: ft.Page):
 
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.window_center()
-<<<<<<< HEAD
     page.title = "Gerenciador de arquivos IA" + " V_3.1.6"
-=======
-    page.title = "Gerenciador de arquivos IA" + " V_3.1.1"
->>>>>>> a9fed14 (V_3.1.2)
     page.icon = "imagem_principal.png"
     progressBar = ft.ProgressBar(width=1000, color=ft.colors.DEEP_ORANGE, value=0)
     progressBar_chunk = ft.ProgressBar(width=1000, color=ft.colors.BROWN_500, visible=False)
@@ -220,7 +216,7 @@ def pages(page: ft.Page):
 
     drop_down_conhecimento = ft.Dropdown(width=400, label="Conhecimento")
 
-    check_box_inteligencia = ft.Checkbox(label="Usar Inteligência", on_change=checkbox_changed)
+    check_box_inteligencia = ft.Checkbox(label="Usar Inteligência", on_change=checkbox_changed, visible=False)
 
     t = ft.Tabs(
         selected_index=0,
@@ -271,4 +267,4 @@ if __name__ == "__main__":
 
 #Gerar teste Debug pyinstaller --name doc_split_V_1.0.0 --icon=icone_principal.ico --copy-metadata=tqdm --copy-metadata=regex --copy-metadata=requests --copy-metadata=packaging --copy-metadata=filelock  --copy-metadata=numpy --copy-metadata=huggingface-hub --copy-metadata=safetensors --copy-metadata=pyyaml --copy-metadata=torch --copy-metadata=tokenizers --add-data="C:/Users/Equiplano/PycharmProjects/doc_split/venvdoc_split/Lib/site-packages/langchain;./langchain" --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=tqdm --hidden-import=sentence_transformers --hidden-import=transformers --console --debug=all --noconfirm page.py
 
-#Gerar versão --> pyinstaller --name Analise_manual_V_3.1.2 --icon=icone_principal.ico --copy-metadata=tqdm --copy-metadata=regex --copy-metadata=requests --copy-metadata=packaging --copy-metadata=filelock  --copy-metadata=numpy --copy-metadata=huggingface-hub --copy-metadata=safetensors --copy-metadata=pyyaml --copy-metadata=torch --copy-metadata=tokenizers --add-data="C:/Users/Equiplano/PycharmProjects/doc_split/venvdoc_split/Lib/site-packages/langchain;./langchain" --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=tqdm --hidden-import=sentence_transformers --hidden-import=transformers --noconfirm --onefile --noconsole page.py
+#Gerar versão --> pyinstaller --name Analise_manual_V_3.1.6 --icon=icone_principal.ico --copy-metadata=tqdm --copy-metadata=regex --copy-metadata=requests --copy-metadata=packaging --copy-metadata=filelock  --copy-metadata=numpy --copy-metadata=huggingface-hub --copy-metadata=safetensors --copy-metadata=pyyaml --copy-metadata=torch --copy-metadata=tokenizers --add-data="C:/Users/Equiplano/PycharmProjects/doc_split/venvdoc_split/Lib/site-packages/langchain;./langchain" --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=tqdm --hidden-import=sentence_transformers --hidden-import=transformers --noconfirm --onefile --noconsole page.py

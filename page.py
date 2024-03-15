@@ -16,7 +16,7 @@ def pages(page: ft.Page):
 
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.window_center()
-    page.title = "Gerenciador de arquivos IA" + " V_3.1.6"
+    page.title = "Gerenciador de arquivos IA" + " V_4.0.0"
     page.icon = "imagem_principal.png"
     progressBar = ft.ProgressBar(width=1000, color=ft.colors.DEEP_ORANGE, value=0)
     progressBar_chunk = ft.ProgressBar(width=1000, color=ft.colors.BROWN_500, visible=False)
@@ -63,10 +63,20 @@ def pages(page: ft.Page):
         total_tokens=0
         paginas = 0
 
+        # if pagina.value:
+        #     documentos = doc.filter_docs(doc.load_pdf(selected_files.value), pagina.value.split(','))
+        # else:
+        #     documentos = doc.load_pdf(selected_files.value)
+
         if pagina.value:
-            documentos = doc.filter_docs(doc.load_pdf(selected_files.value), pagina.value.split(','))
+            texto = doc.extrair_texto_pdf(caminho_pdf=selected_files.value, paginas_a_ignorar=pagina.value, image=False)
+
         else:
-            documentos = doc.load_pdf(selected_files.value)
+            texto = doc.extrair_texto_pdf(caminho_pdf=selected_files.value)
+
+        pdf = doc.texto_para_pdf(texto=texto, caminho_saida=selected_files.value.split('.')[0]+'_formatado.pdf')
+
+        documentos = doc.load_pdf([pdf])
 
         for pag in documentos:
             time.sleep(0.1)
@@ -77,7 +87,7 @@ def pages(page: ft.Page):
             num_tokens = tokens.num_tokens_from_string(pag.page_content)
             total_tokens+=num_tokens
             # rest = doc.remove_crlf(pag.page_content)
-            rest = doc.preprocessar_texto(pag.page_content)
+            rest = pag.page_content
 
             if doc_inf:
                 text = text+'\n'+'-'*90 + ' → pagina ' +str(pag.metadata['page']+1) +'-'*90 +f'\n🪙 tokens:  {num_tokens}\n'+rest.lower()
@@ -104,10 +114,22 @@ def pages(page: ft.Page):
         doc = document_loader.DocumentLoader()
         chunk_overlap.update()
 
+        # if pagina.value:
+        #     document_loaded = doc.filter_docs(doc.load_pdf(selected_files.value), pagina.value.split(','))
+        # else:
+        #     document_loaded = doc.load_pdf(selected_files.value)
+
+
+
         if pagina.value:
-            document_loaded = doc.filter_docs(doc.load_pdf(selected_files.value), pagina.value.split(','))
+            texto = doc.extrair_texto_pdf(caminho_pdf=selected_files.value, paginas_a_ignorar=pagina.value, image=False)
+
         else:
-            document_loaded = doc.load_pdf(selected_files.value)
+            texto = doc.extrair_texto_pdf(caminho_pdf=selected_files.value)
+
+        pdf = doc.texto_para_pdf(texto=texto, caminho_saida=selected_files.value.split('.')[0]+'_formatado.pdf')
+
+        document_loaded = doc.load_pdf([pdf])
 
         doc_split = document_spliter.DocumentSpliter()
         result_split = doc_split.split_by_word(document_loaded, chunk_size=int(chunk_size.value),chunk_overlap=int(chunk_overlap.value))
@@ -267,4 +289,4 @@ if __name__ == "__main__":
 
 #Gerar teste Debug pyinstaller --name doc_split_V_1.0.0 --icon=icone_principal.ico --copy-metadata=tqdm --copy-metadata=regex --copy-metadata=requests --copy-metadata=packaging --copy-metadata=filelock  --copy-metadata=numpy --copy-metadata=huggingface-hub --copy-metadata=safetensors --copy-metadata=pyyaml --copy-metadata=torch --copy-metadata=tokenizers --add-data="C:/Users/Equiplano/PycharmProjects/doc_split/venvdoc_split/Lib/site-packages/langchain;./langchain" --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=tqdm --hidden-import=sentence_transformers --hidden-import=transformers --console --debug=all --noconfirm page.py
 
-#Gerar versão --> pyinstaller --name Analise_manual_V_3.1.6 --icon=icone_principal.ico --copy-metadata=tqdm --copy-metadata=regex --copy-metadata=requests --copy-metadata=packaging --copy-metadata=filelock  --copy-metadata=numpy --copy-metadata=huggingface-hub --copy-metadata=safetensors --copy-metadata=pyyaml --copy-metadata=torch --copy-metadata=tokenizers --add-data="C:/Users/Equiplano/PycharmProjects/doc_split/venvdoc_split/Lib/site-packages/langchain;./langchain" --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=tqdm --hidden-import=sentence_transformers --hidden-import=transformers --noconfirm --onefile --noconsole page.py
+#Gerar versão --> pyinstaller --name Analise_manual_V_4.0.0 --icon=icone_principal.ico --copy-metadata=tqdm --copy-metadata=regex --copy-metadata=requests --copy-metadata=packaging --copy-metadata=filelock  --copy-metadata=numpy --copy-metadata=huggingface-hub --copy-metadata=safetensors --copy-metadata=pyyaml --copy-metadata=torch --copy-metadata=tokenizers --add-data="C:/Users/Equiplano/PycharmProjects/doc_split/venvdoc_split/Lib/site-packages/langchain;./langchain" --hidden-import=tiktoken_ext.openai_public --hidden-import=tiktoken_ext --hidden-import=tqdm --hidden-import=sentence_transformers --hidden-import=transformers --noconfirm --onefile --noconsole page.py

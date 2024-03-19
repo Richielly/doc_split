@@ -13,7 +13,7 @@ class VectorStore:
 
     def get_faiss(self, vetor_name):
         embeddings_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
-        db_faiss = FAISS.load_local(f"./vector_storage_house_faiss/{vetor_name}", embeddings_function)
+        db_faiss = FAISS.load_local(f"./vector_storage_house_faiss/{vetor_name}", embeddings_function, allow_dangerous_deserialization=True)
         return db_faiss
 
     def get_list_faiss(self, diretorio="./vector_storage_house_faiss/"):

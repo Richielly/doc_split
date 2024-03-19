@@ -16,7 +16,7 @@ def pages(page: ft.Page):
 
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.window_center()
-    page.title = "Gerenciador de arquivos IA" + " V_4.0.0"
+    page.title = "Gerenciador de arquivos IA" + " V_4.0.0 "
     page.icon = "imagem_principal.png"
     progressBar = ft.ProgressBar(width=1000, color=ft.colors.DEEP_ORANGE, value=0)
     progressBar_chunk = ft.ProgressBar(width=1000, color=ft.colors.BROWN_500, visible=False)

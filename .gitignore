@@ -26,3 +26,5 @@ __pycache__/document_spliter.cpython-311.pyc
 __pycache__/document_loader.cpython-311.pyc
 __pycache__/agi_connect.cpython-311.pyc
 Analise_manual_V_3.1.6.spec
+vector_storage_house_faiss/recaptcha_formatado/index.faiss
+vector_storage_house_faiss/recaptcha_formatado/index.pkl

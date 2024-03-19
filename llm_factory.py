@@ -12,7 +12,7 @@ class LlmFactory:
         pass
 
     @lru_cache(maxsize=32)
-    def create_llm(self, model='llama-7b', temperature: float = 0.0):
+    def create_llm(self, model='llama-7b_GPU', temperature: float = 0.0):
         match model:
             case 'gpt_3.5':
                 self.llm = ChatOpenAI(openai_api_key="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", model='gpt-3.5-turbo-0301', streaming=True)
